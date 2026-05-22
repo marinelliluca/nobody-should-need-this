@@ -1,0 +1,37 @@
+{
+    "role_themes": [
+        "Audio or Music",
+        "Machine Learning",
+        "LLMs or RAG",
+        "Data Scientist",
+        "Research Scientist"
+    ],
+    "must_have_themes": [
+        "Python ecosystem",
+        "applied ML, research, or substantive data analysis component",
+        "rigorous experimental design, statistical analysis, or evaluation methodology",
+        "clear social-impact / mission-driven mandate"
+    ],
+    "nice_to_have_themes": [
+        "audio/music or media data focus",
+        "LLM/RAG pipeline development",
+        "explainable AI/interpretability focus",
+        "cultural analytics, digital humanities, or computational social science",
+        "NGOs, nonprofits, charities, or foundations",
+        "climate, sustainability, or environmental causes",
+        "digital hate prevention, online safety, digital rights",
+        "human rights, civic tech, or progressive policy organizations",
+        "PhD-friendly or research-track culture",
+        "publication or open-research opportunities"
+    ],
+    "disqualifiers": [
+        "pure software engineering without ML, research, or substantive analytics component",
+        "non-Python primary stack (for technical roles)",
+        "manager-only or non-technical leadership role",
+        "pure frontend or traditional web development",
+        "on-call rotation",
+        "vibe-coding encouraged by the employer",
+        "purely sales-, marketing-, or ad-tech-driven analytics roles with no research or impact dimension"
+    ],
+    "search_query": "We are seeking a researcher, applied scientist, or data scientist to join a team where rigorous quantitative methodology meets meaningful real-world impact. Two parallel tracks are of interest. Track one: applied ML / research engineering roles building deep learning systems for audio processing, music information retrieval, multimodal NLP, and LLM/RAG applications, using PyTorch, Hugging Face, and LangChain, with an emphasis on transformer architectures, explainable AI, large-scale dataset curation, ablation studies, and publication-quality experimental design. Track two: data scientist or data analyst roles at NGOs, nonprofits, foundations, and mission-driven organizations working on climate, sustainability, digital hate prevention, online safety, human rights, cultural heritage, civic tech, or other progressive causes \u2014 where the work involves consolidating heterogeneous evidence, designing surveys and evaluation frameworks, applying advanced statistical analysis, and communicating findings to funders, policy audiences, or the public. Strong fit for roles that value mixed-methods research, reproducible Python workflows, and the ability to translate complex technical or quantitative findings into clear, accountable narratives. Berlin-based or flexible remote arrangements preferred."
+}

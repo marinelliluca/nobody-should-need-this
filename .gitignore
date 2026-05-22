@@ -1,0 +1,15 @@
+.env
+.chroma/
+.venv/
+__pycache__/
+rag/__pycache__/
+scores_json/
+scraper/__pycache__/
+*.pyc
+raw_results/
+scraper/raw_results/
+*.csv
+*.parquet
+_jobs_backups/
+_chroma_backups/
+_user_files/

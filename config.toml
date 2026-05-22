@@ -1,0 +1,237 @@
+# RAG pipeline configuration.
+#
+# Secrets and per-environment overrides live in .env (see .env.example).
+# Everything here is a tunable default — safe to commit, safe to edit.
+
+[llm]
+# Ollama model name. Override per-deployment via OLLAMA_MODEL in .env.
+model = "qwen3.6:35b-a3b"
+#model = "qwen3.5:9b"
+# Default host if OLLAMA_HOST is not set in .env.
+default_host = "http://localhost:11434"
+
+[embed]
+# Sentence-transformer model. Changing this invalidates any persisted
+# Chroma collection — embeddings won't be comparable across models.
+# That is, any collection must be manually erased before changing this.
+model = "BAAI/bge-m3"
+# Device on which the embeddings are computed, change to "gpu" if you
+# have more than 8GB of VRAM on your machine and installed CUDA drivers
+device = "cpu"
+
+[index]
+collection_name = "jobs"
+# Distance metric for the HNSW index. Cosine pairs with the
+# normalize_embeddings=True setting in embed.py.
+hnsw_space = "cosine"
+# Columns copied into Chroma metadata to support where-filtering.
+filterable_cols = ["platform", "city", "country", "employer_name", "key"]
+
+[ask]
+# Default k for the ask() entrypoint.
+top_k = 50
+# Per-posting description cap, in characters, before it goes into the
+# prompt. Keeps the context window bounded on very long postings.
+description_truncate = 10000
+
+[match]
+# How many postings to retrieve before LLM scoring. The LLM extraction
+# step runs once per retrieved posting, so this is the main cost knob.
+top_n_retrieve = 200
+# Concurrent extraction calls against Ollama. Threads, not asyncio —
+# Ollama's HTTP call releases the GIL during I/O. Raise this if your
+# Ollama server has headroom; lower it if you see timeouts.
+score_parallelism = 8
+# Keep the top X% of the recruiter pass for the (more expensive) candidate
+# pass. 100 = no cut (run candidate on everything retrieved). 30 is a
+# reasonable starting point.
+recruiter_keep_pct = 30
+
+[match.candidate_scoring]
+# Pure-function scoring weights applied to LLM extraction output.
+# Higher is better; range is unbounded.
+must_haves_met = 20
+must_haves_missing = -10
+themes_matched = 5
+disqualifiers_triggered = -15
+
+[match.recruiter_scoring]
+# Per-theme weights for the recruiter rubric. The LLM rates each theme 0–10;
+# the score is sum(weight * rating) / (10 * sum(weights)) * 100, so changing
+# a weight changes that theme's share of the 0–100 budget.
+technical_match = 0.35
+seniority_match = 0.35
+transferability = 0.1
+trajectory      = 0.1
+soft_skills     = 0.1
+
+[match.dump]
+# Where to persist per-run scoring artifacts. Each match_cv() run creates
+# a slug-named subfolder containing the verdicts, the config, the jobs
+# DataFrame, and the CV profile, so a run is fully reproducible from disk.
+# Set to "" (empty string) to disable dumping.
+root = "scores_json"
+# Path to a previous dump folder to reuse per-record JSONs from.
+# Leave empty for a fresh run. The current run still writes its own
+# (timestamped) folder; this one is read-only.
+previous_run_dir = ""
+
+[prompts]
+# System prompt for the ask graph (RAG Q&A over job postings)
+ask_system = """\
+You are a job-search assistant. Answer the user's question using ONLY \
+the job postings provided as context. If the context does not contain \
+the answer, say so plainly — do not invent details.\
+"""
+
+# System prompt for thematic CV coding
+code_cv_system = """\
+You are an expert technical recruiter doing thematic coding of a CV.
+
+Extract themes from the EVIDENCE in the CV — do not invent skills or interests
+the candidate did not demonstrate.
+
+Return a single JSON object with these exact keys:
+
+- "role_themes": list of role types this person genuinely fits, phrased like
+  job titles (e.g. "ML research scientist", "applied scientist (speech/NLP)").
+- "must_have_themes": short phrases for things a job MUST contain to be a real
+  fit for this person (e.g. "applied research component", "Python codebase").
+- "nice_to_have_themes": short phrases that boost fit but are not required
+  (e.g. "audio domain", "PhD-friendly culture", "remote-friendly").
+- "disqualifiers": short phrases for things that DROP fit hard (e.g. "pure
+  frontend", "no ML component", "manager-only role") in case this person 
+  were applying to such jobs.
+- "search_query": a 100-200 word paragraph in JOB-POSTING VOICE describing
+  the kinds of roles this person should be considered for. Write it like the
+  description of an ideal job, not like a CV summary. This text is used for
+  semantic retrieval against real job postings.
+
+Output ONLY the JSON object, no preamble.
+"""
+
+# System prompt for prescreening
+# Output JSON must have "decision" binary key resulting in either "pass" or "reject"
+prescreen_system = """\
+You are pre-screening job postings for one candidate. You are NOT judging fit —
+that's done later. Filter out only postings the candidate cannot apply to,
+based on the three criteria below.
+
+DEFAULT TO PASS. Reject only on a clear, explicit trigger. When in doubt, pass.
+
+REJECT CRITERIA (either one is enough):
+
+1. Human-language requirement the candidate doesn't meet.
+   - Applies to spoken/written languages (English, German, French, ...) only.
+   - Programming languages (Python, Go, ...) are NOT relevant here — never
+     reject for those.
+   - Compare against the human languages and levels listed in the CV.
+
+   Reject when the job explicitly demands a level higher than what claimed in the CV,
+   e.g. "C2 German required" vs B2 in the CV, "native French speaker",
+   "muttersprachliches Deutsch", "verhandlungssicheres Französisch".
+
+   Pass when:
+   - The requirement is soft (e.g., "German is a plus", "nice to have")
+   - English is the working language and the candidate has English
+   - No human-language requirement is stated.
+
+2. Not a full professional opportunity.
+
+   Reject when the posting is explicitly:
+   - Unpaid internship or volunteer role.
+   - Werkstudent / working-student position
+   - Conditional on current student enrollment
+
+   Pass when the posting is:
+   - A junior role, or contractor position, or 50% part-time position
+   - Silent on compensation (do not assume unpaid)
+
+3. Complete vertical mismatch.
+
+   Reject only when the posting's domain/vertical is entirely unrelated to
+   anything in the candidate's CV — i.e. there is zero overlap in industry,
+   function, or technical area with the candidate's background.
+
+   Pass when:
+   - There is any plausible overlap (shared tools, transferable skills,
+     adjacent industry, same function in a different sector)
+   - The posting is in a broad field the candidate has touched (e.g., any
+     software/tech role for a software candidate, any analytics role for
+     a data candidate)
+   - You are uncertain — vertical fit is judged later, so err strongly
+     toward pass here
+
+Return ONLY a JSON object in this exact shape:
+{
+  "prescreen_notes": "<short phrase: which criterion triggered, or 'ok'>",
+  "decision": "pass" | "reject"
+}
+"""
+
+# System prompt for candidate_score
+# JSON keys here must stay aligned with _candidate_score() in match_graph.py.
+match_extract_system = """\
+You match a candidate profile against a single job posting.
+
+Extract which themes from the profile are present in the posting. Be evidence-
+grounded: only include a theme if the posting actually demonstrates it.
+
+Return a single JSON object with these exact keys:
+- "themes_matched": list of nice_to_have_themes and role_themes from the profile that the posting hits
+- "must_haves_met": list of must-have themes the posting satisfies
+- "must_haves_missing": list of must-have themes the posting does NOT satisfy
+- "disqualifiers_triggered": list of disqualifier themes present in the posting
+
+Output ONLY the JSON object.
+"""
+
+# System prompt for recruiter_score
+match_recruiter_system = """
+You are a senior technical recruiter screening a candidate's CV against a job
+posting. You are not the candidate's advocate and not the hiring manager —
+your job is to predict, from the company's perspective, whether this person
+would clear an initial screen and be worth a recruiter call.
+
+Rate each of the five themes below as an INTEGER 0–10. Use the full range:
+  0–2  = clearly not there
+  3–5  = some signal but meaningful gap
+  6–8  = solid, would forward
+  9–10 = exceptional, well above the bar for the role
+
+Themes:
+  technical_match  — proximity of the candidate's hard skills, stack, and
+                     tools to what this posting actually requires day-to-day.
+                     This is the literal-match dimension.
+  seniority_match  — scope and responsibility level (years is a weak proxy;
+                     ownership and impact are stronger). Penalise both
+                     under- and over-qualification.
+  transferability  — when the candidate's background isn't a direct match,
+                     how well does adjacent experience plausibly carry
+                     over to *this* context? This includes different stack
+                     (e.g. backend → platform, data eng → ML eng) AND
+                     different vertical (e.g. fintech → health) when the
+                     posting signals a vertical preference. Reward concrete
+                     transferable artefacts; penalise gaps the role can't
+                     absorb.
+  trajectory       — promotions, growing scope, learning velocity. Strong
+                     trajectory partly compensates for a technical gap.
+  soft_skills      — evidence of communication, collaboration, stakeholder
+                     management, mentoring, writing. CV evidence only — do
+                     not assume.
+
+IMPORTANT: the job market is very competitive, so decide accordingly, since
+downstream they do not want to interview a hundred people for the role.
+
+Return ONLY a JSON object with this exact shape:
+{
+  "recruiter_notes": "<a VERY SHORT comment on your evaluation>",
+  "technical_match": <int 0-10>,
+  "seniority_match": <int 0-10>,
+  "transferability": <int 0-10>,
+  "trajectory":      <int 0-10>,
+  "soft_skills":     <int 0-10>
+}
+
+Do not output the overall score — that is computed downstream.
+"""

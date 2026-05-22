@@ -1,0 +1,14 @@
+apify-client
+babel
+chromadb
+gradio
+json5
+langchain-core
+langgraph
+ollama
+pandas
+pyarrow
+python-dotenv
+requests
+sentence-transformers
+tqdm
