@@ -14,6 +14,12 @@ The workflow is: scrape a portfolio of searches → save a `jobs_*.parquet` → 
 
 For a non-technical, click-by-click walkthrough of both apps, see the [user guide](INTERFACE_README.md).
 
+<video src="https://github.com/marinelliluca/nobody-should-need-this/raw/refs/heads/main/scraper_demo.mp4" controls width="100%"></video>
+
+---
+
+<video src="https://github.com/marinelliluca/nobody-should-need-this/raw/refs/heads/main/rag_demo.mp4" controls width="100%"></video>
+
 ---
 
 **THIS IS NOT AN AI "AGENT" (no tool calling), IT'S NOT VIBE-CODED, AND PRESUPPOSES THAT YOU ARE USING [OLLAMA](https://ollama.com)**
