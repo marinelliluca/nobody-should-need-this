@@ -19,6 +19,13 @@ Demo videos below in this page.
 ## Install
 
 ```bash
+# OPTIONAL: do this first if you don't plan to use your local GPU
+# (see below how to set up a cheap, private remote Ollama hosting)
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+```
+then install the rest of the requirements
+
+```bash
 pip install -r requirements.txt
 cp .env.example .env   # then fill in the values as described below
 ```
@@ -33,7 +40,7 @@ ollama pull bge-m3            # only if [embed].device = "ollama"
 
 > (❗) Inference runs through Ollama to keep everything private and to avoid managing model loading and GPU memory by hand. Other backends aren't on the roadmap at the moment, but I'd welcome a pull request if you'd like to add one. Adding another backend essentially means reimplementing the small LLM wrapper in `rag/llm.py` and add a couple of config keys in `rag/config.py` and `config.toml`.
 
-Here is a guide on [cheap remote Ollama hosting](thundercompute.md) if you don't have a GPU with enough VRAM (12GB *at least*).
+Here is a guide on [cheap remote Ollama hosting](thundercompute.md) if you don't have a GPU with enough VRAM (realistically, 8GB *at the very least*).
 
 
 ## Demo videos
