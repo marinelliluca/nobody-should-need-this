@@ -25,7 +25,8 @@ import chromadb
 import pandas as pd
 
 from .config import CONFIG, chroma_dir
-from .embed import Embedder
+from .embed import Embedder, get_embedder
+from .embed_remote import RemoteEmbedder
 
 
 def _row_to_text(row: pd.Series) -> str:
@@ -91,7 +92,7 @@ class Index:
 
 
 def build_index(df: pd.DataFrame, persist_dir: str | None = None,
-                embedder: Embedder | None = None) -> Index:
+                embedder: Embedder | RemoteEmbedder | None = None) -> Index:
     """Build (or load) the Chroma collection for `df`.
 
     Rows whose `key` is already in the collection are skipped, so repeated
@@ -101,7 +102,7 @@ def build_index(df: pd.DataFrame, persist_dir: str | None = None,
     `persist_dir` set (or CHROMA_DIR in the environment), the collection
     survives across sessions.
     """
-    embedder = embedder or Embedder()
+    embedder = embedder or get_embedder()
     persist_dir = persist_dir or chroma_dir()
     client = (chromadb.PersistentClient(path=persist_dir) if persist_dir
               else chromadb.EphemeralClient())

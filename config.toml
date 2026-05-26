@@ -14,10 +14,14 @@ default_host = "http://localhost:11434"
 # Sentence-transformer model. Changing this invalidates any persisted
 # Chroma collection — embeddings won't be comparable across models.
 # That is, any collection must be manually erased before changing this.
-model = "BAAI/bge-m3"
+#model = "BAAI/bge-m3"
+model = "bge-m3"
 # Device on which the embeddings are computed, change to "gpu" if you
-# have more than 8GB of VRAM on your machine and installed CUDA drivers
-device = "cpu"
+# have 6+GB of GPU VRAM on your local machine and installed CUDA drivers.
+# Options: "cpu", "gpu" (both embed locally via SentenceTransformer)
+# or alternatively, 
+# device = "ollama", to compute everything wherever you are running Ollama
+device = "ollama"
 
 [index]
 collection_name = "jobs"
@@ -41,7 +45,7 @@ top_n_retrieve = 200
 # Concurrent extraction calls against Ollama. Threads, not asyncio —
 # Ollama's HTTP call releases the GIL during I/O. Raise this if your
 # Ollama server has headroom; lower it if you see timeouts.
-score_parallelism = 8
+score_parallelism = 16
 # Keep the top X% of the recruiter pass for the (more expensive) candidate
 # pass. 100 = no cut (run candidate on everything retrieved). 30 is a
 # reasonable starting point.

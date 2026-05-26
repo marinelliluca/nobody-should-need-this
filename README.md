@@ -1,32 +1,49 @@
-# NOBODY SHOULD NEED THIS
+# NOBODY SHOULD NEED THIS (app)
 
-> #### The job search has become a humiliation ritual due to (1) previous reckless overhiring (2) financial instability due to the end of the globalized neoliberal world order (3) the greed of executives who think they can replace every single employee with a glorified autocomplete (4) the widespread adoption of such glorified autocomplete in hiring and other automated systems that reject resumes before a human ever sees them. 
+Job hunting is now a humiliation ritual fueled by economic instability, corporate greed for cheap AI labor, and automated systems that reject resumes before any human ever sees them.
 
-**This app helps you find jobs you can realistically apply to**, to give you a fighting chance and save you days of relentless, soul-crushing scrolling over job postings that were never intended for you to read.
+**This app helps you find jobs you can realistically apply to** and saves you days of relentless, soul-crushing scrolling over job postings that were never intended for you to read.
 
 This is an end-to-end, local-first job-hunting toolkit. It's divided into three python packages:
 
-1. `scraper/`: **Scrape** job postings from multiple boards into one deduplicated DataFrame
-2. `rag/`: **Match & rank** those postings against a CV using a local LLM, with the LLM doing semantic judgment and Python doing the arithmetic
-3. `interface/`: **Drive both from a browser** via two small Gradio apps, so you don't have to live in a notebook
+1. `scraper/`: **Scrape** job postings from multiple boards into one deduplicated DataFrame. A single Apify-backed actor (`alljobs`) covers LinkedIn, Indeed, Glassdoor, ZipRecruiter and several regional boards in one call, with `xing` as a second actor; `main.py` runs whichever you select and deduplicates the postings on `(employer_name, title, city)`. 
 
-The workflow is: scrape a portfolio of searches → save a `jobs_*.parquet` → code your CV into an editable profile → score every posting through a four-pass pipeline → tune the weights and skim the survivors.
+2. `rag/`: **Match & rank** those postings against a CV using a local LLM, with the LLM doing semantic judgment and Python doing the arithmetic. Matching happens in four passes: **retrieve** pulls the closest postings from the vector index, then **prescreen** acts as a coarse gate that drops only what's clearly inapplicable — a language requirement above your level, an unpaid or student-only role, a complete vertical mismatch — leaving the judgment of actual fit to the two scoring passes. `recruiter_score` asks whether a recruiter would call you back (reading your raw CV against the posting), while `candidate_score` asks whether the job posting actually reflects what you want.
 
-For a non-technical, click-by-click walkthrough of both apps, see the [user guide](INTERFACE_README.md).
+3. `interface/`: **Drive both from a browser** via two small Gradio apps, so you don't have to live in a notebook. The scraper app runs a whole portfolio of searches at once and hands back the parquet file that the matcher needs; the match app loads that file, codes your CV into an editable profile, scores everything, and then lets you re-weight the scorers and drag a cutoff to filter the results live, without re-running the LLM. Both surface a startup banner when a required token or path is missing, so misconfiguration is visible before you click anything.
 
-<video src="https://github.com/marinelliluca/nobody-should-need-this/raw/refs/heads/main/scraper_demo.mp4" controls width="100%"></video>
+### For a non-technical walkthrough of both apps, see the [user guide](INTERFACE_README.md). 
 
----
+Demo videos below in this page.
 
-<video src="https://github.com/marinelliluca/nobody-should-need-this/raw/refs/heads/main/rag_demo.mp4" controls width="100%"></video>
+## Install
 
----
+```bash
+pip install -r requirements.txt
+cp .env.example .env   # then fill in the values as described below
+```
 
-**THIS IS NOT AN AI "AGENT" (no tool calling), IT'S NOT VIBE-CODED, AND PRESUPPOSES THAT YOU ARE USING [OLLAMA](https://ollama.com)**
+You also need a running [Ollama](https://ollama.com) server with the configured model already pulled:
 
-Check this quick [guide for remote Ollama hosting](thundercompute.md) if you don't have enough VRAM at home.
+```bash
+ollama serve
+ollama pull qwen3.6:35b-a3b   # or whatever you set as [llm].model in config.toml
+ollama pull bge-m3            # only if [embed].device = "ollama"
+```
 
-> (❗) Inference runs through Ollama to keep everything local and to avoid managing model loading and GPU memory by hand.Other backends aren't on the roadmap at the moment, but I'd welcome a pull request if you'd like to add one. Adding another backend essentially means reimplementing the small LLM wrapper in `rag/llm.py` and add a couple of config keys in `rag/config.py` and `config.toml`.
+> (❗) Inference runs through Ollama to keep everything private and to avoid managing model loading and GPU memory by hand. Other backends aren't on the roadmap at the moment, but I'd welcome a pull request if you'd like to add one. Adding another backend essentially means reimplementing the small LLM wrapper in `rag/llm.py` and add a couple of config keys in `rag/config.py` and `config.toml`.
+
+Here is a guide on [cheap remote Ollama hosting](thundercompute.md) if you don't have a GPU with enough VRAM (12GB *at least*).
+
+
+## Demo videos
+
+https://github.com/user-attachments/assets/5ec994b9-ae90-4d4b-8d8c-e586120cc711
+
+
+
+https://github.com/user-attachments/assets/42bc68e4-ab18-42fb-9550-4257fde2fa8d
+
 
 ## Repository layout
 
@@ -39,20 +56,6 @@ Check this quick [guide for remote Ollama hosting](thundercompute.md) if you don
 
 The two halves communicate through a single artifact: a `jobs_*.parquet` file with a stable, unique `key` column. The scraper produces it; the matcher (and the RAG app) consume it.
 
-## Install
-
-```bash
-pip install -r requirements.txt
-cp .env.example .env   # then fill in the values as described below
-```
-
-You also need a running [Ollama](https://ollama.com) server with the configured model pulled (used by the whole `rag` package):
-
-```bash
-ollama serve
-ollama pull qwen3.6:35b-a3b   # or whatever you set as [llm].model in config.toml
-```
-
 ### Environment variables
 
 Secrets and per-machine paths live in `.env`; tunable defaults live in `config.toml` (see [Configuration](#configuration)). **Env vars always win over TOML.** Keep `.env` gitignored, but you can commit `.env.example` and `config.toml`.
@@ -60,9 +63,9 @@ Secrets and per-machine paths live in `.env`; tunable defaults live in `config.t
 | Variable | Used by | Purpose |
 |---|---|---|
 | `APIFY_TOKEN` | scraper | Apify API token. Required to run any scrape. |
-| `OLLAMA_HOST` | rag | Ollama HTTP endpoint. Falls back to `[llm].default_host`. |
+| `OLLAMA_HOST` | rag | Ollama HTTP endpoint, for LLM inference and (when `[embed].device = "ollama"`) embeddings. Falls back to `[llm].default_host`. |
 | `OLLAMA_MODEL` | rag | Override the model from `config.toml`. |
-| `HF_TOKEN` | rag | Hugging Face token, for downloading the sentence-transformer embedding model (optional). |
+| `HF_TOKEN` | rag | Hugging Face token for downloading the sentence-transformer embedding model. Only needed when `[embed].device` is `cpu`/`gpu`; unused on the `ollama` path. |
 | `CHROMA_DIR` | rag | Persistent Chroma directory. If unset, the index is in-memory and rebuilt every session (I would suggest *against* this). |
 | `RAG_CONFIG_PATH` | rag | Path to `config.toml`. Defaults to `./config.toml`, and is therefore optional. |
 
@@ -298,10 +301,10 @@ Everything tunable lives in `config.toml`. The loader (`rag/config.py`) reads `.
 |---|---|---|
 | `[llm]` | `model` | Any model your Ollama server has pulled. |
 | `[llm]` | `default_host` | Used only if `OLLAMA_HOST` is unset. |
-| `[embed]` | `model` | Sentence-transformer model. **Changing this invalidates any persisted Chroma collection** — embeddings aren't comparable across models. Delete `CHROMA_DIR` and re-embed. |
-| `[embed]` | `device` | `"cpu"` or `"gpu"` (needs CUDA + enough VRAM). |
+| `[embed]` | `model` | Embedding model. **Changing this — or switching `[embed].device` between a local value (`cpu`/`gpu`) and `ollama` — invalidates any persisted Chroma collection.** Embeddings from sentence-transformers and from Ollama aren't guaranteed comparable even for the same model name (different pooling, normalization, quantization, etc.). Delete `CHROMA_DIR` and re-embed after any such change. |
+| `[embed]` | `device` | Selects the embedding backend: `"cpu"` or `"gpu"` run the local sentence-transformers embedder (`"gpu"` needs CUDA + enough VRAM), while `"ollama"` computes embeddings on the Ollama server over HTTP instead. With `"ollama"`, the model named in `[embed].model` must be pulled on that server (`ollama pull bge-m3`), and embeddings use `OLLAMA_HOST` — the same endpoint as inference. |
 | `[index]` | `collection_name` | Chroma collection name. |
-| `[index]` | `hnsw_space` | `"cosine"`, paired with `normalize_embeddings=True` in `embed.py`. |
+| `[index]` | `hnsw_space` | `"cosine"`. Vectors are unit-normalized before storage — by sentence-transformers' `normalize_embeddings=True` on the local path, or client-side on the `ollama` path — so cosine reduces to a dot product. |
 | `[index]` | `filterable_cols` | Columns copied into Chroma metadata for `where`-filtering. `key` is always stored regardless, since scoped search filters on it. |
 | `[ask]` | `top_k` | Default k for `ask()`. |
 | `[ask]` | `description_truncate` | Per-posting description cap (chars) before the prompt. |
@@ -322,4 +325,4 @@ Everything tunable lives in `config.toml`. The loader (`rag/config.py`) reads `.
 - **Re-weighting is free.** Because the LLM only fills in integers/lists, you can replay `[match.recruiter_scoring]` and `[match.candidate_scoring]` over existing dumps — or live in the `rag_app` — without re-prompting.
 - **Split the work across models** with `prescreen_only=True` + `previous_run_dir` when you want a cheap model to do the bulk filtering and a strong one to do the scoring.
 - **Malformed JSON?** Check that the system prompts in `config.toml` still end with their JSON-only instruction.
-- **Changing `[embed].model` is breaking for persisted indexes.** Delete `CHROMA_DIR` and re-embed.
+- **Changing `[embed].model`, or switching `[embed].device` to/from `ollama`, is breaking for persisted indexes.** Even with the same model name, local sentence-transformers and Ollama embeddings aren't guaranteed to match (quantization, pooling, normalization differences), so previously computed local embeddings can be silently incompatible. Delete `CHROMA_DIR` and re-embed.

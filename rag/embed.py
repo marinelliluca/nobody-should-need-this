@@ -8,7 +8,16 @@ from __future__ import annotations
 from sentence_transformers import SentenceTransformer
 
 from .config import CONFIG
+from .embed_remote import RemoteEmbedder
 
+# local selector so SentenceTransformer doesn't choke on device="ollama"
+def get_embedder():
+    """Return the embedder selected by [embed].device."""
+    device = CONFIG["embed"]["device"]
+    if device == "ollama":
+        from .embed_remote import RemoteEmbedder
+        return RemoteEmbedder()
+    return Embedder()  # cpu / gpu -> local sentence-transformers
 
 class Embedder:
     def __init__(self, model_name: str | None = None):
