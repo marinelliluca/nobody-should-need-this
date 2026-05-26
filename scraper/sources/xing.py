@@ -85,7 +85,12 @@ def scrape(title: str, location: str = "", discipline: str = "",
             run_input["discipline"] = discipline
 
     run = client.actor(ACTOR_ID).call(run_input=run_input)
-    items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+    if run is None:                      # .call() returns None on a failed run
+        raise RuntimeError(f"{ACTOR_ID} run failed (returned None)")
+
+    # apify-client switched dict -> typed Run object; support both.
+    dataset_id = run["defaultDatasetId"] if isinstance(run, dict) else run.default_dataset_id
+    items = list(client.dataset(dataset_id).iterate_items())
     return pd.DataFrame(_normalize(it) for it in items)
 
 
