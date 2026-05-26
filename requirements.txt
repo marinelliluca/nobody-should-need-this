@@ -1,4 +1,4 @@
-apify-client
+apify-client>=2.0
 babel
 chromadb
 gradio

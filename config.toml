@@ -45,7 +45,7 @@ top_n_retrieve = 200
 # Concurrent extraction calls against Ollama. Threads, not asyncio —
 # Ollama's HTTP call releases the GIL during I/O. Raise this if your
 # Ollama server has headroom; lower it if you see timeouts.
-score_parallelism = 16
+score_parallelism = 8
 # Keep the top X% of the recruiter pass for the (more expensive) candidate
 # pass. 100 = no cut (run candidate on everything retrieved). 30 is a
 # reasonable starting point.

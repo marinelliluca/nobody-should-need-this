@@ -32,7 +32,7 @@ class RemoteEmbedder:
         self,
         model_name: str | None = None,
         host: str | None = None,
-        batch_size: int = 128,
+        batch_size: int = 32, # TODO: surface this in config
         timeout: float = 120.0,
     ):
         # Reuse the same model name and host helpers the rest of the app uses,
