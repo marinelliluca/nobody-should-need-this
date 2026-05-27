@@ -22,6 +22,10 @@ model = "bge-m3"
 # or alternatively, 
 # device = "ollama", to compute everything wherever you are running Ollama
 device = "ollama"
+# batch_size is ignored when not using Ollama for the embeddings
+batch_size = 32
+# same goes for timeout time (s)
+timeout = 120.0
 
 [index]
 collection_name = "jobs"
@@ -45,7 +49,7 @@ top_n_retrieve = 200
 # Concurrent extraction calls against Ollama. Threads, not asyncio —
 # Ollama's HTTP call releases the GIL during I/O. Raise this if your
 # Ollama server has headroom; lower it if you see timeouts.
-score_parallelism = 8
+score_parallelism = 12
 # Keep the top X% of the recruiter pass for the (more expensive) candidate
 # pass. 100 = no cut (run candidate on everything retrieved). 30 is a
 # reasonable starting point.

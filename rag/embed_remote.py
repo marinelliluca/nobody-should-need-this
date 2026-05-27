@@ -32,15 +32,15 @@ class RemoteEmbedder:
         self,
         model_name: str | None = None,
         host: str | None = None,
-        batch_size: int = 32, # TODO: surface this in config
-        timeout: float = 120.0,
+        batch_size: int | None = None,
+        timeout: float| None = None,
     ):
         # Reuse the same model name and host helpers the rest of the app uses,
         # so OLLAMA_HOST / [embed].model still drive behaviour.
         self.model = model_name or CONFIG["embed"]["model"]
         self.host = (host or ollama_host()).rstrip("/")
-        self.batch_size = batch_size
-        self.timeout = timeout
+        self.batch_size = batch_size or CONFIG["embed"]["batch_size"]
+        self.timeout = timeout or CONFIG["embed"]["timeout"]
         self._session = requests.Session()
 
     def _embed(self, inputs: list[str]) -> list[list[float]]:
@@ -55,12 +55,19 @@ class RemoteEmbedder:
         embeddings = resp.json()["embeddings"]
         return [_normalize(v) for v in embeddings]
 
-    def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        out: list[list[float]] = []
-
-        # embed in batches
+    def embed_documents(self, texts):
+        out = []
         for i in range(0, len(texts), self.batch_size):
-            out.extend(self._embed(texts[i : i + self.batch_size]))
+            chunk = texts[i:i+self.batch_size]
+            try:
+                out.extend(self._embed(chunk))
+            except Exception:
+                for t in chunk:                       # isolate the offender
+                    try:
+                        out.extend(self._embed([t]))
+                    except Exception as e:
+                        #print(e)
+                        out.append(None)              # or skip
         return out
 
     def embed_query(self, text: str) -> list[float]:

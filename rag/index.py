@@ -118,11 +118,32 @@ def build_index(df: pd.DataFrame, persist_dir: str | None = None,
     if not new_rows.empty:
         ids = [str(k) for k in new_rows["key"]]
         texts = [_row_to_text(r) for _, r in new_rows.iterrows()]
-        collection.add(
-            ids=ids,
-            embeddings=embedder.embed_documents(texts),
-            documents=texts,
-            metadatas=[_row_to_metadata(r) for _, r in new_rows.iterrows()],
-        )
+        embeddings = embedder.embed_documents(texts)
+        metadatas  = [_row_to_metadata(r) for _, r in new_rows.iterrows()]
 
-    return Index(collection, embedder, scope_keys=df_keys)
+        # skip unembeddable rows (which have None as embedding)
+        surviving = [
+            (id_, emb, tx, met) 
+            for id_, emb, tx, met in zip (ids, embeddings, texts, metadatas)
+            if emb is not None
+        ]
+        if surviving:                   
+            ids2, embs2, docs2, metas2 = zip(*surviving)   # unzip once
+            collection.add(
+                ids=list(ids2),
+                embeddings=list(embs2),
+                documents=list(docs2),
+                metadatas=list(metas2),
+            )
+        dropped = len(texts) - len(surviving)
+        if dropped:
+            kept = {id_ for id_, *_ in surviving}
+            print(f"Skipped {dropped} unembeddable rows: {[i for i in ids if i not in kept]}")
+
+    scope_keys = df_keys & set(collection.get()["ids"])
+
+    if not scope_keys and len(df)>0:
+        msg = ("The Index scope is empty! The embedder failed everywhere.")
+        raise Exception(msg)
+
+    return Index(collection, embedder, scope_keys=scope_keys)

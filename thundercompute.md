@@ -66,7 +66,7 @@ In a new terminal, SSH in using the host you just defined and start the server:
 ```bash
 ssh my-tnr-0
 # you are now on the instance
-OLLAMA_KEEP_ALIVE=24h OLLAMA_NUM_PARALLEL=8 start-ollama
+OLLAMA_GPU_OVERHEAD=0 OLLAMA_SCHED_SPREAD=1 OLLAMA_KEEP_ALIVE=24h OLLAMA_NUM_PARALLEL=12 start-ollama
 ```
 
 Set `OLLAMA_NUM_PARALLEL` to at least `[match].score_parallelism` in `config.toml`. Both values must be matched to your instance's capacity (i.e., if you see timeout errors, lower them).
@@ -77,9 +77,9 @@ Back in the `tnr connect 0` terminal you left open, pull the model and run a qui
 
 ```bash
 ollama pull qwen3.6:35b-a3b   # or whichever model you configured
+ollama run qwen3.6:35b-a3b "This is a test, just answer OK" --verbose
 ollama pull bge-m3 # or any configured embedding moddel, if [embed].device = "ollama"
 ollama run bge-m3 "Hello world" # just load it and test the embeddings
-ollama run qwen3.6:35b-a3b "This is a test, just answer OK" --verbose
 ```
 
 Once the tests complete, the models are ready. You can close the `tnr connect` terminal, but **keep the SSH session open**, since it holds the port-forwarding tunnel.
