@@ -76,8 +76,8 @@ Set `OLLAMA_NUM_PARALLEL` to at least `[match].score_parallelism` in `config.tom
 Back in the `tnr connect 0` terminal you left open, pull the model and run a quick check:
 
 ```bash
-ollama pull qwen3.6:35b-a3b   # or whichever model you configured
-ollama run qwen3.6:35b-a3b "This is a test, just answer OK" --verbose
+ollama pull qwen3.6:27b   # or whichever model you configured
+ollama run qwen3.6:27b "This is a test, just answer OK" --verbose
 ollama pull bge-m3 # or any configured embedding moddel, if [embed].device = "ollama"
 ollama run bge-m3 "Hello world" # just load it and test the embeddings
 ```

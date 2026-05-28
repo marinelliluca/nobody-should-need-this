@@ -34,7 +34,7 @@ You also need a running [Ollama](https://ollama.com) server with the configured 
 
 ```bash
 ollama serve
-ollama pull qwen3.6:35b-a3b   # or whatever you set as [llm].model in config.toml
+ollama pull qwen3.6:27b   # or whatever you set as [llm].model in config.toml
 ollama pull bge-m3            # only if [embed].device = "ollama"
 ```
 

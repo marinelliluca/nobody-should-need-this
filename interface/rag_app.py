@@ -50,10 +50,13 @@ PREVIEW_COLS = [
     "title",
     "employer_name",
     "city",
+    "posted_at",
     "recruiter_score",
     "candidate_score",
     "found_on",
     "job_url",
+    "platform_url",
+    "description",
 ]
 
 # Environment variables surfaced as a startup warning (see interface.common).

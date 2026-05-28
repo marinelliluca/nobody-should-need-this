@@ -5,7 +5,7 @@
 
 [llm]
 # Ollama model name. Override per-deployment via OLLAMA_MODEL in .env.
-model = "qwen3.6:35b-a3b"
+model = "qwen3.6:27b"
 #model = "qwen3.5:9b"
 # Default host if OLLAMA_HOST is not set in .env.
 default_host = "http://localhost:11434"
@@ -208,12 +208,18 @@ Rate each of the five themes below as an INTEGER 0–10. Use the full range:
   9–10 = exceptional, well above the bar for the role
 
 Themes:
-  technical_match  — proximity of the candidate's hard skills, stack, and
-                     tools to what this posting actually requires day-to-day.
-                     This is the literal-match dimension.
+  technical_match  — this is the literal-match dimension. Does the candidate 
+                     already work on THIS KIND OF PROBLEM, day-to-day? 
+                     Match the specialization and the actual work done — not 
+                     just the surrounding tools, degree, or industry vocabulary. 
+                     The subfield overlap (the job's specific specialty within 
+                     the broader profession) sets the score; industry vertical 
+                     (i.e., the job's sector) is a soft modifier on top of it, 
+                     reducing the score by at most 2 points when the posting 
+                     signals a vertical preference the candidate lacks.
   seniority_match  — scope and responsibility level (years is a weak proxy;
-                     ownership and impact are stronger). Penalise both
-                     under- and over-qualification.
+                     ownership and impact are stronger). Penalise only 
+                     underqualification.
   transferability  — when the candidate's background isn't a direct match,
                      how well does adjacent experience plausibly carry
                      over to *this* context? This includes different stack
@@ -222,8 +228,15 @@ Themes:
                      posting signals a vertical preference. Reward concrete
                      transferable artefacts; penalise gaps the role can't
                      absorb.
-  trajectory       — promotions, growing scope, learning velocity. Strong
-                     trajectory partly compensates for a technical gap.
+  trajectory       — how well adjacent experience carries into THIS
+                     role when subfield, vertical, or toolset isn't a
+                     direct match. This is where shared scaffolding
+                     earns credit: a methodology, skill, or domain
+                     bridge that plausibly carries the gap is a high
+                     signal even when technical_match is moderate.
+                     Reward concrete artefacts the candidate has
+                     shipped that map onto this role; penalise gaps
+                     the role cannot absorb.
   soft_skills      — evidence of communication, collaboration, stakeholder
                      management, mentoring, writing. CV evidence only — do
                      not assume.
@@ -233,7 +246,7 @@ downstream they do not want to interview a hundred people for the role.
 
 Return ONLY a JSON object with this exact shape:
 {
-  "recruiter_notes": "<a VERY SHORT comment on your evaluation>",
+  "recruiter_notes": "<a couple of sentences --- maximum --- on your evaluation>",
   "technical_match": <int 0-10>,
   "seniority_match": <int 0-10>,
   "transferability": <int 0-10>,
