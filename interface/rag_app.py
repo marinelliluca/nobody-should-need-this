@@ -57,6 +57,7 @@ PREVIEW_COLS = [
     "job_url",
     "platform_url",
     "description",
+    "recruiter_notes",
 ]
 
 # Environment variables surfaced as a startup warning (see interface.common).
@@ -513,7 +514,8 @@ def _build_match() -> tuple:
         wrap=True,
         interactive=False,
         row_count=(15, "dynamic"),
-        max_height=600,
+        max_height=1000,
+        max_chars=300,   
     )
 
     export_btn = gr.Button("Export", variant="secondary")
