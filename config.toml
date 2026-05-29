@@ -201,7 +201,9 @@ REJECT CRITERIA (any one is enough):
    - You are uncertain — vertical fit is judged later, so err strongly
      toward pass here
 
-4. Explicitly unwanted job category: AI data annotator / model-evaluation work.
+4. Explicitly unwanted job category: 
+   
+   AI trainer / data annotator / model-evaluation work.
 
    Roles where the work product is generating, labeling, rating, or evaluating
    data used to train or fine-tune AI models — i.e. the candidate's expertise
