@@ -1,5 +1,9 @@
-# Scraper interface
+# Secrets and per-environment overrides live in .env (see .env.example).
+# Everything here is a tunable default — safe to commit, safe to edit.
 
+
+# Scraper interface
+#
 [user_defaults]
 queries = [
     # Core ML/AI
@@ -10,41 +14,31 @@ queries = [
     # Data
     "data scien",
     "data analy",
-    "quantitative",
+    "quantitative analy",
 
-    # LLM / NLP / agentic
-    "LLM",
-    "NLP",
-    "generative AI",
-    "agentic",
-    "RAG",
+    # LLM / RAG / agentic
+    "LLM RAG",
+    "agentic AI",
 
     # Audio / music tech
-    "audio tech",
-    "speech tech",
-    "music tech",
+    "audio engineer",
+    "music engineer",
 
     # Research / academic
-    "postdoc",
-    "research",
-    "wissenschaft",
-
-    # Impact-adjacent
-    "computational social science",
-    "explainable AI",
+    "postdoc AI",
+    "research AI",
+    "wissenschaft KI",
 ]
 
 # RAG pipeline configuration.
 #
-# Secrets and per-environment overrides live in .env (see .env.example).
-# Everything here is a tunable default — safe to commit, safe to edit.
-
 [llm]
 # Ollama model name. Override per-deployment via OLLAMA_MODEL in .env.
 model = "qwen3.6:27b"
 #model = "qwen3.5:9b"
 # Default host if OLLAMA_HOST is not set in .env.
 default_host = "http://localhost:11434"
+timeout = 30.0
 
 [embed]
 # Sentence-transformer model. Changing this invalidates any persisted
@@ -61,7 +55,7 @@ device = "ollama"
 # batch_size is ignored when not using Ollama for the embeddings
 batch_size = 64
 # same goes for timeout time (s)
-timeout = 120.0
+timeout = 30.0
 
 [index]
 collection_name = "jobs"
@@ -157,13 +151,14 @@ Output ONLY the JSON object, no preamble.
 # System prompt for prescreening
 # Output JSON must have "decision" binary key resulting in either "pass" or "reject"
 prescreen_system = """\
-You are pre-screening job postings for one candidate. You are NOT judging fit —
-that's done later. Filter out only postings the candidate cannot apply to,
-based on the three criteria below.
+You are pre-screening job postings for one candidate. You are NOT judging
+overall fit — that's done later. Filter out only postings the candidate cannot
+apply to, or that fall in an explicitly unwanted job category, based on the
+four criteria below.
 
 DEFAULT TO PASS. Reject only on a clear, explicit trigger. When in doubt, pass.
 
-REJECT CRITERIA (either one is enough):
+REJECT CRITERIA (any one is enough):
 
 1. Human-language requirement the candidate doesn't meet.
    - Applies to spoken/written languages (English, German, French, ...) only.
@@ -205,6 +200,28 @@ REJECT CRITERIA (either one is enough):
      a data candidate)
    - You are uncertain — vertical fit is judged later, so err strongly
      toward pass here
+
+4. Explicitly unwanted job category: AI data annotator / model-evaluation work.
+
+   Roles where the work product is generating, labeling, rating, or evaluating
+   data used to train or fine-tune AI models — i.e. the candidate's expertise
+   is the *input* to someone else's AI, rather than something they build with.
+
+   Reject when the posting describes responsibilities like:
+   - Writing prompts, questions, or "challenging problems" for AI model training
+   - Rating, ranking, or evaluating AI model outputs / responses
+   - Providing domain expertise as training data, often framed as
+     flexible / async / contract work aimed at subject-matter experts
+   - The company is a data-labeling vendor or AI lab hiring expert annotators
+     (Scale AI, Surge, Outlier, Mercor, Invisible, Mindrift, ... and similar)
+
+   Pass when:
+   - The role is building, deploying, or researching AI/ML systems, even if
+     the posting mentions "training data" as something the team works with
+   - Data-labeling or evaluation is only a part of a broader ML/engineering
+     role, not the core deliverable
+   - You are uncertain whether the role is annotation vs. building — pass
+     (the candidate will down-rank it)
 
 Return ONLY a JSON object in this exact shape:
 {

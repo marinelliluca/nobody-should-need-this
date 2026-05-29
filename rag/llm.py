@@ -13,7 +13,7 @@ from typing import Any
 
 from ollama import Client
 
-from .config import ollama_host, ollama_model
+from .config import CONFIG, ollama_host, ollama_model
 
 # Strip a trailing comma immediately before `}` or `]`, allowing whitespace
 # in between. Used only as a last-ditch fallback after json5 also fails.
@@ -48,10 +48,15 @@ def _parse_loose_json(text: str) -> dict:
 
 
 class LLM:
-    def __init__(self, host: str | None = None, model: str | None = None):
+    def __init__(
+        self, 
+        host: str | None = None, 
+        model: str | None = None, 
+        timeout: float | None = None
+    ):
         self.client = Client(
             host=host or ollama_host(), 
-            timeout=300, # fail after 5 minutes
+            timeout=timeout or CONFIG["llm"]["timeout"]
         ) 
         self.model = model or ollama_model()
 
