@@ -1,3 +1,39 @@
+# Scraper interface
+
+[user_defaults]
+queries = [
+    # Core ML/AI
+    "machine learning",
+    "deep learning",
+    "artificial intelligence",
+
+    # Data
+    "data scien",
+    "data analy",
+    "quantitative",
+
+    # LLM / NLP / agentic
+    "LLM",
+    "NLP",
+    "generative AI",
+    "agentic",
+    "RAG",
+
+    # Audio / music tech
+    "audio tech",
+    "speech tech",
+    "music tech",
+
+    # Research / academic
+    "postdoc",
+    "research",
+    "wissenschaft",
+
+    # Impact-adjacent
+    "computational social science",
+    "explainable AI",
+]
+
 # RAG pipeline configuration.
 #
 # Secrets and per-environment overrides live in .env (see .env.example).
@@ -23,7 +59,7 @@ model = "bge-m3"
 # device = "ollama", to compute everything wherever you are running Ollama
 device = "ollama"
 # batch_size is ignored when not using Ollama for the embeddings
-batch_size = 32
+batch_size = 64
 # same goes for timeout time (s)
 timeout = 120.0
 

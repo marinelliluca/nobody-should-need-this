@@ -26,6 +26,7 @@ import pandas as pd
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from rag.config import CONFIG #TODO: move config.py into interface/ (for now not a priority)
 from scraper.main import run, safe_name
 from scraper.sources import ACTOR_NAMES
 
@@ -60,12 +61,13 @@ PREVIEW_COLS = [
 JOB_TYPE_CHOICES = ["", "all", "fulltime", "parttime", "internship", "contract"]
 
 # Default query portfolio
-DEFAULT_QUERIES: list[str] = [
-    "data scientist",
-    "data analyst",
-    "quantitative analyst",
-    "applied researcher",
+_FALLBACK = [
+    "data scientist", 
+    "data analyst", 
+    "quantitative analyst", 
+    "applied researcher"
 ]
+DEFAULT_QUERIES: list[str] = CONFIG["user_defaults"].get("queries") or _FALLBACK
 
 # Pool size for query slots. Gradio Blocks don't easily support truly
 # dynamic component lists, so we pre-allocate this many rows and just
