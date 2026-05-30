@@ -26,6 +26,8 @@ import interface  # noqa: F401
 import gradio as gr
 import pandas as pd
 
+from scraper.sources._utils import parse_posted_at
+
 from rag import code_cv, match_cv
 from rag.match_graph import _recruiter_score, _candidate_score, recent_dump_dirs
 
@@ -105,6 +107,19 @@ CANDIDATE_WEIGHT_KEYS = [
 # THEME_KEYS alone.
 _THEME_LISTS: dict[str, DynamicList] = {}
 
+# Helper
+
+def _filter_recent(df: pd.Datafame, cutoff: str) -> pd.DataFrame:
+    """Keep rows posted on/after `cutoff`, e.g. '7 days ago' or '1 month ago'.
+    Rows with missing posted_at are kept."""
+    if cutoff.strip().isdigit() or "ago" not in cutoff.lower():
+        raise ValueError(
+            f"cutoff must be a relative phrase like '7 days ago', got {cutoff!r}"
+        )
+    cutoff_date = parse_posted_at(cutoff)
+    if cutoff_date is None:
+        raise ValueError(f"could not parse cutoff: {cutoff!r}")
+    return df[df["posted_at"].isna() | (df["posted_at"] >= cutoff_date)]
 
 # ---------------------------------------------------------------------------
 # CV theme columns  (editable lists for the four THEME_KEYS profile keys)
@@ -418,9 +433,16 @@ def _build_match() -> tuple:
         label="top_n_retrieve",
         value=1000, minimum=1, maximum=10000, step=10,
         info=(
-            "Number of jobs to retrieve for prescreening. "
-            "Leave this number bigger than the total amount of jobs for maximum recall."
+            "Number of jobs to retrieve for prescreening. \n"
+            "For maximum recall leave this number bigger than the total amount of postings."
         ),
+    )
+
+    cutoff_date = gr.Textbox(
+        label="Cutoff date",
+        value="2 weeks ago",
+        info=("Keep rows posted on/after a relative date, e.g. '7 days ago' or '1 month ago'. \n"
+              "Rows without date are deliberately kept.")
     )
 
     # Resume-from-cache: pick a previous run's dump folder to reuse its
@@ -434,7 +456,7 @@ def _build_match() -> tuple:
         value=_NO_RESUME,
         info=(
             "Reuse cached per-record verdicts from a prior run's dump folder "
-            "(matched by job key). Lets you resume an interrupted run or run "
+            "(matched by job key). \nLets you resume an interrupted run or run "
             "prescreen on a small model first, then the rest on a bigger one. "
             "Leave as 'none' for a fresh run."
         ),
@@ -529,6 +551,7 @@ def _build_match() -> tuple:
         w_must_haves_met, w_must_haves_missing, w_themes_matched,
         w_disqualifiers_triggered,
         top_n_retrieve,
+        cutoff_date,
         previous_run_dir,
         run_btn, export_btn,
         match_status,
@@ -542,6 +565,7 @@ def _run_match(
     profile_json:   str,
     cv_text:        str | None,
     top_n_retrieve: float, # gr.Number hands back a float
+    cutoff_date: str | None,
     previous_run_dir: str | None,
 ):
     """Generator: streams terminal output into match_log, yields top+status at end."""
@@ -554,6 +578,9 @@ def _run_match(
         profile = json.loads(profile_json)
     except (json.JSONDecodeError, TypeError):
         raise gr.Error("Profile is missing or invalid. Load or auto-code a profile first.")
+
+    # Filter OUT old posts
+    jobs_df = _filter_recent(jobs_df, cutoff_date)
 
     # Map the dropdown sentinel back to None (fresh run); any real folder
     # path is forwarded to match_cv, which validates it and falls back to
@@ -832,6 +859,7 @@ with gr.Blocks(title="RAG job matcher", analytics_enabled=False) as demo:
         w_must_haves_met, w_must_haves_missing, w_themes_matched,
         w_disqualifiers_triggered,
         top_n_retrieve,
+        cutoff_date,
         previous_run_dir,
         run_btn, export_btn,
         match_status,
@@ -858,7 +886,7 @@ with gr.Blocks(title="RAG job matcher", analytics_enabled=False) as demo:
         outputs=[profile_editor],
     ).then(
         _run_match,
-        inputs=[jobs_state, profile_editor, cv_text_state, top_n_retrieve, previous_run_dir],
+        inputs=[jobs_state, profile_editor, cv_text_state, top_n_retrieve, cutoff_date, previous_run_dir],
         outputs=[top_state, match_status, match_log],
     ).then(
         _apply_scoring,
