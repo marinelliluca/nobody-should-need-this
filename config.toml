@@ -38,7 +38,7 @@ model = "qwen3.6:27b"
 #model = "qwen3.5:9b"
 # Default host if OLLAMA_HOST is not set in .env.
 default_host = "http://localhost:11434"
-timeout = 30.0
+timeout = 120.0
 
 [embed]
 # Sentence-transformer model. Changing this invalidates any persisted
@@ -55,7 +55,7 @@ device = "ollama"
 # batch_size is ignored when not using Ollama for the embeddings
 batch_size = 64
 # same goes for timeout time (s)
-timeout = 30.0
+timeout = 60.0
 
 [index]
 collection_name = "jobs"
