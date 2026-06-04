@@ -1,6 +1,60 @@
-## Running Ollama on a Thundercompute instance
+Good catch. Here's the corrected section with the image restored in the right place:
 
-> **Disclosure:** I have no affiliation with thundercompute.com and receive nothing for mentioning it. In my experience it's the cheapest and simplest way to run large models through Ollama, but I'd be glad to be pointed at a better option.
+---
+
+## Running Ollama on a runpod.io instance
+
+RunPod provides on-demand GPU instances accessible via SSH. This guide assumes you have a RunPod account with at least $10 loaded (the minimum transaction).
+
+### 1. Create the instance
+
+Go to [https://console.runpod.io/hub?tabSelected=templates](https://console.runpod.io/hub?tabSelected=templates) and search for the `ollama/ollama:latest` template. Deploy an instance with an **NVIDIA A40** GPU — it is cost-effective and sufficient for 30B models via Ollama. Select a specific server region if available for better latency.
+
+### 2. Connect
+
+Once the instance is running, you should see the instance dashboard:
+
+<img src="runpod.png" width="600">
+
+SSH into the machine using the connection command shown in the console (use the standard SSH command, not the TCP alternative):
+
+```bash
+ssh <your-runpod-ssh-command>
+```
+
+### 3. Pull and test a model
+
+Once connected, pull your configured model and run a quick check:
+
+```bash
+ollama pull qwen3.6:27b   # or whichever model you configured
+ollama run qwen3.6:27b "This is a test, just answer OK" --verbose
+ollama pull bge-m3        # or any configured embedding model, if [embed].device = "ollama"
+ollama run bge-m3 "Hello world"   # load it and test embeddings
+```
+
+### 4. Configure the Ollama host
+
+In the RunPod console, locate the **HTTP Service** link for your instance (right-click → copy link). Add it to your `.env` file:
+
+```
+OLLAMA_HOST=<pasted-link>
+```
+
+The pipeline will use this URL to reach the Ollama API on your instance.
+
+### 5. Verify connectivity
+
+From a local terminal, confirm Ollama is reachable through the configured host:
+
+```bash
+curl $<pasted_link>/api/tags
+```
+
+---
+
+
+## DEPRECATED - Running Ollama on a Thundercompute instance
 
 Thundercompute provides pre-configured GPU instances optimised for Ollama. This is functionally equivalent to renting a server elsewhere with your own private OS, installing the dependencies by hand, and configuring port forwarding yourself. Thundercompute just removes that setup work. Their CLI (`tnr create` / `connect` / `status`) makes the process considerably easier, and this guide assumes you have it installed.
 

@@ -40,7 +40,7 @@ ollama pull bge-m3            # only if [embed].device = "ollama"
 
 > (❗) Inference runs through Ollama to keep everything private and to avoid managing model loading and GPU memory by hand. Other backends aren't on the roadmap at the moment, but I'd welcome a pull request if you'd like to add one. Adding another backend essentially means reimplementing the small LLM wrapper in `rag/llm.py` and add a couple of config keys in `rag/config.py` and `config.toml`.
 
-Here is a guide on [cheap remote Ollama hosting](thundercompute.md) if you don't have a GPU with enough VRAM (realistically, 8GB *at the very least*).
+Here is a guide on [cheap remote Ollama hosting](misc/cheap_ollama_hosting.md) if you don't have a GPU with enough VRAM (realistically, 8GB *at the very least*).
 
 
 ## Demo videos
