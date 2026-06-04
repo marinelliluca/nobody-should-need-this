@@ -53,7 +53,7 @@ model = "bge-m3"
 # device = "ollama", to compute everything wherever you are running Ollama
 device = "ollama"
 # batch_size is ignored when not using Ollama for the embeddings
-batch_size = 64
+batch_size = 256
 # same goes for timeout time (s)
 timeout = 60.0
 

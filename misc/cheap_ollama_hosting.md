@@ -48,7 +48,7 @@ The pipeline will use this URL to reach the Ollama API on your instance.
 From a local terminal, confirm Ollama is reachable through the configured host:
 
 ```bash
-curl $<pasted_link>/api/tags
+curl <pasted_link>/api/tags
 ```
 
 ---
