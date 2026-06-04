@@ -1,7 +1,3 @@
-Good catch. Here's the corrected section with the image restored in the right place:
-
----
-
 ## Running Ollama on a runpod.io instance
 
 RunPod provides on-demand GPU instances accessible via SSH. This guide assumes you have a RunPod account with at least $10 loaded (the minimum transaction).
