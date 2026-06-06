@@ -259,7 +259,7 @@ With `dump=True`, each run lands under `[match.dump].root/<slug>/`:
 └── summary.csv                 # title, employer, both scores — quick scan
 ```
 
-The slug is `<model>__n<top_n_retrieve>__keep<recruiter_keep_pct>__<timestamp>`, so two runs with identical config share a leading slug and only differ by the timestamp suffix. Each pass's full output is dumped even though only a subset reaches the next pass — nothing scored is ever lost, which is exactly what makes resume-from-cache and weight replay possible.
+The slug is `<model>__n<top_n_retrieve>__keep<recruiter_keep_pct>__<timestamp>`, so two runs with identical config share a leading slug and only differ by the timestamp suffix. Each pass's full output is dumped even though only a subset reaches the next pass — nothing scored is ever lost, which is exactly what makes resume-from-cache possible.
 
 ## DataFrame schema (RAG side)
 
