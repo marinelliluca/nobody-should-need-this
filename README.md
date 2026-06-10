@@ -45,12 +45,7 @@ Here is a guide on [cheap remote Ollama hosting](misc/cheap_ollama_hosting.md) i
 
 ## Demo videos
 
-https://github.com/user-attachments/assets/5ec994b9-ae90-4d4b-8d8c-e586120cc711
-
-
-
-https://github.com/user-attachments/assets/42bc68e4-ab18-42fb-9550-4257fde2fa8d
-
+... coming back soon
 
 ## Repository layout
 
