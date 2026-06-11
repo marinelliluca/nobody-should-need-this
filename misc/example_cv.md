@@ -58,9 +58,9 @@ Researcher in AI and Music with a track record of presenting at top-tier venues 
 
 ## Languages (certified)
 
-- German: B2 
+- Italian: Native Speaker
 - English: C2 
-- Italian: Native
+- German: B2 
 
 ## Publications
 
