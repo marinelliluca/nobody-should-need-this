@@ -50,7 +50,7 @@ curl <pasted_link>/api/tags
 ---
 
 
-## DEPRECATED - Running Ollama on a Thundercompute instance
+## DEPRECATED
 
 Thundercompute provides pre-configured GPU instances optimised for Ollama. This is functionally equivalent to renting a server elsewhere with your own private OS, installing the dependencies by hand, and configuring port forwarding yourself. Thundercompute just removes that setup work. Their CLI (`tnr create` / `connect` / `status`) makes the process considerably easier, and this guide assumes you have it installed.
 
