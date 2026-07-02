@@ -139,6 +139,8 @@ def split_location(loc: str) -> tuple[str, str]:
     """
     if not loc:
         return "", ""
+    if isinstance(loc, dict):
+        loc = loc["raw"]
     parts = [p.strip() for p in loc.split(",") if p.strip()]
     if not parts:
         return "", ""
