@@ -23,9 +23,9 @@ ssh <your-runpod-ssh-command>
 Once connected, pull your configured model and run a quick check:
 
 ```bash
-ollama pull qwen3.6:27b   # or whichever model you configured
-ollama run qwen3.6:27b "This is a test, just answer OK" --verbose
+ollama pull qwen3.8:27b   # or whichever model you configured
 ollama pull bge-m3        # or any configured embedding model, if [embed].device = "ollama"
+ollama run qwen3.8:27b "This is a test, just answer OK" --verbose
 ollama run bge-m3 "Hello world"   # load it and test embeddings
 ```
 

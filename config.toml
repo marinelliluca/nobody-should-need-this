@@ -34,7 +34,7 @@ queries = [
 #
 [llm]
 # Ollama model name. Override per-deployment via OLLAMA_MODEL in .env.
-model = "qwen3.6:27b"
+model = "qwen3.8:27b"
 #model = "qwen3.5:9b"
 # Default host if OLLAMA_HOST is not set in .env.
 default_host = "http://localhost:11434"
